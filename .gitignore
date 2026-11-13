@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+.venv  # broken stub plus real env — ignore both
+
+# Environment / secrets
+.env
+.env.*
+
+# macOS / editors
+.DS_Store
+.vscode/
+.idea/

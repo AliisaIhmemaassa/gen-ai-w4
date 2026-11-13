@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hakuchat</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background: #f5f5f7; color: #111; }
+  .wrap { max-width: 700px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; height: 100vh; }
+  header { font-weight: 600; font-size: 1.1rem; margin-bottom: 10px; }
+  #msgs { flex: 1; overflow-y: auto; border: 1px solid #ccc; background: #fff; border-radius: 8px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { padding: 8px 12px; border-radius: 10px; max-width: 85%; line-height: 1.45; }
+  .user { align-self: flex-end; background: #0066cc; color: #fff; }
+  .assistant { align-self: flex-start; background: #eaeaea; color: #111; }
+  .meta { font-size: 0.78rem; opacity: 0.75; margin-top: 4px; }
+  a { color: #0066cc; text-decoration: underline; }
+  .form { display: flex; gap: 8px; border-top: 1px solid #ccc; padding-top: 10px; }
+  input { flex: 1; padding: 10px 12px; border: 1px solid #bbb; border-radius: 8px; font: inherit; font-size: 0.95rem; }
+  button { padding: 10px 18px; border: 0; background: #0066cc; color: #fff; border-radius: 8px; font: inherit; font-size: 0.95rem; cursor: pointer; }
+  button:hover { background: #0052a3; }
+  button:disabled { opacity: 0.6; cursor: not-allowed; }
+  .err { color: #b00; font-size: 0.85rem; margin-bottom: 6px; }
+</style>
+<div class="wrap">
+  <header>hakuchat</header>
+  <div id="msgs"></div>
+  <div class="err" id="err"></div>
+  <div class="form">
+    <input id="txt" placeholder="Kirjoita viesti…" autocomplete="off">
+    <button id="send">Lähetä</button>
+  </div>
+</div>
+<script>
+const msgs = document.getElementById("msgs");
+const txt = document.getElementById("txt");
+const send = document.getElementById("send");
+const err = document.getElementById("err");
+
+let sessionId = localStorage.getItem("hc_session");
+if (!sessionId) {
+  sessionId = crypto.randomUUID();
+  localStorage.setItem("hc_session", sessionId);
+}
+
+function linkify(text) {
+  return text.replace(
+    /(https?:\/\/[^\s<]+)/g,
+    '<a href="$1" target="_blank" rel="noopener">$1</a>'
+  );
+}
+
+function add(text, who, meta) {
+  const div = document.createElement("div");
+  div.className = "msg " + who;
+  div.innerHTML = linkify(text);
+  if (meta) {
+    const m = document.createElement("div");
+    m.className = "meta";
+    m.textContent = meta;
+    div.appendChild(m);
+  }
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function busy(b) {
+  send.disabled = b;
+  txt.disabled = b;
+  if (!b) txt.focus();
+}
+
+async function sendMessage() {
+  const value = txt.value.trim();
+  if (!value) return;
+  txt.value = "";
+  err.textContent = "";
+  add(value, "user");
+
+  busy(true);
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({session_id: sessionId, message: value}),
+    });
+    if (!res.ok) throw new Error("palvelinvirhe " + res.status);
+    const data = await res.json();
+    const meta = data.search_used ? "Hakua käytetty: " + (data.search_query || "") : null;
+    add(data.answer || "(tyhjä vastaus)", "assistant", meta);
+  } catch (e) {
+    err.textContent = e.message;
+    busy(false);
+    return;
+  }
+  busy(false);
+}
+
+send.addEventListener("click", sendMessage);
+txt.addEventListener("keydown", (e) => { if (e.key === "Enter") sendMessage(); });
+txt.focus();
+</script>
