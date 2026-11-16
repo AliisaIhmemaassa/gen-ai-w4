@@ -38,3 +38,17 @@ Then open `http://127.0.0.1:8080`.
 - No Flask: server uses the standard library `http.server`
 - `server.py` reads `index.html` from disk, so keep both files together
 - The API key must never be committed; `OPENROUTER_API_KEY` is read from the environment only
+
+## Reflektio
+
+**Missä kohdassa agentti teki virheen tai huonon ratkaisun, ja miten huomasit sen?**
+En löytänyt yhtään selvää virhettä. Agentti sai toteutuksen valmiiksi ilman, että jouduin korjaamaan sen työtä. Se ei kuitenkaan tarkoita, ettei virheitä olisi voinut olla: testasin sovellusta ajamalla sitä ja kokeilemalla muutamia kysymyksiä, ja kaikki toimi odotetusti.
+
+**Minkä osan koodista ymmärrät heikoimmin? Mitä tekisit asialle?**
+Heikoiten ymmärrän `chat_core.py`:n tool-use-silmukan. Aion käydä koodin läpi rivi riviltä, lisätä kommentteja omin sanoin ja kirjoittaa muutaman pienen testin, jotta näen, miten se oikeasti käyttäytyy.
+
+**Miten agentin käyttö vaikutti oppimiseesi verrattuna siihen, että olisit kirjoittanut koodin itse?**
+Toteutus eteni selvästi nopeammin, mutta oppiminen jäi pinnallisemmaksi. Jos olisin kirjoittanut koodin itse, olisin joutunut perehtymään OpenAI-kirjastoon ja työkalusilmukkaan kunnolla. Agentin kanssa on helppo hyväksyä ehdotuksia ymmärtämättä niitä kunnolla, ja juuri siksi tool-use-silmukka jäi minulle epäselväksi.
+
+**Milloin malli päätti hakea ja milloin ei? Toimiko päätös järkevästi?**
+Malli haki, kun kysymys koski ajankohtaisia asioita tai jotain, mikä piti tarkistaa. Yleisiin keskustelukysymyksiin se vastasi suoraan ilman hakua. Päätös tuntui useimmiten järkevältä, koska turhia hakuja ei tullut. Rajatapauksissa malli saattoi kuitenkin jättää haun tekemättä, vaikka siitä olisi ollut hyötyä.
